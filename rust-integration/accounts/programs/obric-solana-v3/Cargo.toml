@@ -1,0 +1,26 @@
+[package]
+name = "obric-solana-v3"
+version = "0.1.0"
+description = "Created with Anchor"
+edition = "2021"
+
+[lib]
+crate-type = ["cdylib", "lib"]
+name = "obric_solana_v3"
+
+[features]
+no-entrypoint = []
+no-idl = []
+no-log-ix-name = []
+cpi = ["no-entrypoint"]
+default = []
+test-only = [] # test only features
+
+[dependencies]
+anchor-lang = { version = "0.28.0", features = ["init-if-needed"] }
+anchor-spl = "0.28.0"
+pyth-sdk = "0.7.0"
+pyth-sdk-solana = "0.7.0"
+num = "0.4.0"
+larix-lending ={ git = "https://github.com/ProjectLarix/larix-lending.git", rev= "229c423c1bd9a07c9cff4dbd3cbe3614198f17c8"}
+# raydium-amm-v3 = { git = "https://github.com/raydium-io/raydium-clmm.git", rev="5771ec2fd21ae7ed05a1019ebc897e63a103e6b7", features=["cpi"]}

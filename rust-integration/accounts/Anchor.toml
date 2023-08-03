@@ -1,0 +1,19 @@
+[features]
+seeds = false
+skip-lint = false
+
+[programs.mainnet]
+obric_solana = "AYBqaywuDVd3SYQkrLLJ27WRin5MrfJdQNHZGgc4LmHA"
+obric_solana_v3 = "4DDLcmzLRosAUgTNSHXDuAHmuE1CACA193L3QTPYyz9j"
+# [programs.devnet]
+# obric_solana = "AbvTEuipYnGYgZKijb2HgE6i8xMEkWdYKo5weXir4Rz2"
+
+[registry]
+url = "https://api.apr.dev"
+
+[provider]
+cluster = "mainnet"
+wallet = "./sobric.json" # admin
+
+[scripts]
+test = "yarn run jest --preset ts-jest"
