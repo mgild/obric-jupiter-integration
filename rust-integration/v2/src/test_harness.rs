@@ -1,11 +1,10 @@
+use crate::constants::PROGRAM_ID;
+use crate::obric_v2_amm::ObricV2Amm;
 use anyhow::Result;
+use jupiter_amm_interface::{Amm, KeyedAccount, QuoteParams};
 use solana_client::rpc_client::RpcClient;
 use std::collections::HashMap;
 use std::env;
-use jupiter_amm_interface::{Amm, KeyedAccount, QuoteParams};
-use crate::constants::PROGRAM_ID;
-use crate::obric_v2_amm::ObricV2Amm;
-
 
 pub struct AmmTestHarness {
     pub client: RpcClient,
@@ -25,10 +24,10 @@ impl AmmTestHarness {
         let keyed_accounts = &mut vec![];
         for (key, account) in accounts {
             if account.data.len() == 666usize {
-                keyed_accounts.push(KeyedAccount{
+                keyed_accounts.push(KeyedAccount {
                     key,
                     account,
-                    params: None
+                    params: None,
                 })
             }
         }
@@ -65,7 +64,7 @@ fn test_quote() {
     for keyed_account in all_keyed_account {
         let amm = &mut ObricV2Amm::from_keyed_account(&keyed_account).unwrap();
         test_harness.update_amm(amm);
-        println!("Pool: {}, {}", amm.state.mint_x,  amm.state.mint_y);
+        println!("Pool: {}, {}", amm.state.mint_x, amm.state.mint_y);
         let in_amount = pow(10, usize::from(amm.x_decimals));
         let quote = amm
             .quote(&QuoteParams {
@@ -75,9 +74,15 @@ fn test_quote() {
             })
             .unwrap();
 
-        println!("  Token mints: from {}, to {}", amm.state.mint_x,  amm.state.mint_y);
+        println!(
+            "  Token mints: from {}, to {}",
+            amm.state.mint_x, amm.state.mint_y
+        );
         println!("  In amount: {}", in_amount);
-        println!("  Out amount: {:?}, Fee amount: {:?}", quote.out_amount, quote.fee_amount);
+        println!(
+            "  Out amount: {:?}, Fee amount: {:?}",
+            quote.out_amount, quote.fee_amount
+        );
 
         let in_amount = pow(10, usize::from(amm.y_decimals)); // 10 SOL
         let quote = amm
@@ -88,9 +93,14 @@ fn test_quote() {
             })
             .unwrap();
 
-        println!("\n  Token mints: from {}, to {}", amm.state.mint_y,  amm.state.mint_x);
+        println!(
+            "\n  Token mints: from {}, to {}",
+            amm.state.mint_y, amm.state.mint_x
+        );
         println!("  In amount: {}", in_amount);
-        println!("  Out amount: {:?}, Fee amount: {:?}\n", quote.out_amount, quote.fee_amount);
-
+        println!(
+            "  Out amount: {:?}, Fee amount: {:?}\n",
+            quote.out_amount, quote.fee_amount
+        );
     }
 }

@@ -3,7 +3,7 @@ seeds = false
 skip-lint = false
 
 [programs.mainnet]
-obric_solana = "AYBqaywuDVd3SYQkrLLJ27WRin5MrfJdQNHZGgc4LmHA"
+obric_solana = "obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y"
 obric_solana_v3 = "4DDLcmzLRosAUgTNSHXDuAHmuE1CACA193L3QTPYyz9j"
 # [programs.devnet]
 # obric_solana = "AbvTEuipYnGYgZKijb2HgE6i8xMEkWdYKo5weXir4Rz2"

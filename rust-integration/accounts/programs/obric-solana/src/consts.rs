@@ -1,6 +1,6 @@
 pub mod admin {
     use anchor_lang::declare_id;
-    declare_id!("obrrzdC5QzRHopGwe8jqUWkKa73AVLyAoEgRpa9V13i");
+    declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 }
 
 pub const TRADING_PAIR_SEED: &str = "trading_pair";
