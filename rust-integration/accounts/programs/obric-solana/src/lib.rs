@@ -1,25 +1,28 @@
-pub mod state;
-pub mod errors;
 pub mod consts;
+pub mod errors;
+pub mod state;
 
-use anchor_lang::prelude::*;
-use crate::state::{PriceFeed, SSTradingPair};
 use crate::errors::ObricError;
+use crate::state::{PriceFeed, SSTradingPair};
+use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
-
-declare_id!("AYBqaywuDVd3SYQkrLLJ27WRin5MrfJdQNHZGgc4LmHA");
+declare_id!("obriQD1zbpyLz95G5n7nJe6a4DPjpFwa5XYPoNm113y");
 
 #[program]
 pub mod obric_solana {
     use super::*;
-    use crate::{Swap};
+    use crate::Swap;
 
-    pub fn swap(_ctx: Context<Swap>, _is_x_to_y: bool, _input_amt: u64, _min_output_amt: u64) -> Result<()>{
+    pub fn swap(
+        _ctx: Context<Swap>,
+        _is_x_to_y: bool,
+        _input_amt: u64,
+        _min_output_amt: u64,
+    ) -> Result<()> {
         Ok(())
     }
 }
-
 
 #[derive(Accounts)]
 #[instruction(is_x_to_y: bool)]

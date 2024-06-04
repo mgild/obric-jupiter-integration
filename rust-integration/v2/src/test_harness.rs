@@ -68,9 +68,9 @@ fn test_quote() {
         let in_amount = pow(10, usize::from(amm.x_decimals));
         let quote = amm
             .quote(&QuoteParams {
-                input_mint: amm.state.mint_x,
-                in_amount,
-                output_mint: amm.state.mint_y,
+            input_mint: amm.state.mint_x,
+            in_amount,
+            output_mint: amm.state.mint_y,
             })
             .unwrap();
 
@@ -87,9 +87,9 @@ fn test_quote() {
         let in_amount = pow(10, usize::from(amm.y_decimals)); // 10 SOL
         let quote = amm
             .quote(&QuoteParams {
-                input_mint: amm.state.mint_y,
-                in_amount,
-                output_mint: amm.state.mint_x,
+            input_mint: amm.state.mint_y,
+            in_amount,
+            output_mint: amm.state.mint_x,
             })
             .unwrap();
 

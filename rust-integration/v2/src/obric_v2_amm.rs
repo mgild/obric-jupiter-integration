@@ -1,4 +1,4 @@
-use crate::constants::PROGRAM_ID;
+use crate::constants::{PROGRAM_ID};
 use anchor_lang::AccountDeserialize;
 use anchor_spl::token::spl_token::solana_program::instruction::AccountMeta;
 use anchor_spl::token::spl_token::solana_program::pubkey::Pubkey;
@@ -11,6 +11,8 @@ use obric_solana::state::PriceFeed;
 use obric_solana::state::SSTradingPair;
 use solana_sdk::account::Account;
 use std::collections::HashMap;
+use crate::errors::AmmError;
+
 
 pub struct ObricV2Amm {
     key: Pubkey,
@@ -61,28 +63,28 @@ impl Amm for ObricV2Amm {
     }
 
     fn update(&mut self, accounts_map: &HashMap<Pubkey, Account>) -> Result<()> {
-        let reserve_x_data = &mut &accounts_map.get(&self.state.reserve_x).unwrap().data[0..];
-        let reserve_y_data = &mut &accounts_map.get(&self.state.reserve_x).unwrap().data[0..];
-        let reserve_x_token_account = &TokenAccount::try_deserialize(reserve_x_data).unwrap();
-        let reserve_y_token_account = &TokenAccount::try_deserialize(reserve_y_data).unwrap();
+        let reserve_x_data = &mut &accounts_map.get(&self.state.reserve_x).ok_or(AmmError::AccountNotFound)?.data[..];
+        let reserve_y_data = &mut &accounts_map.get(&self.state.reserve_x).ok_or(AmmError::AccountNotFound)?.data[..];
+        let reserve_x_token_account = &TokenAccount::try_deserialize(reserve_x_data)?;
+        let reserve_y_token_account = &TokenAccount::try_deserialize(reserve_y_data)?;
         self.current_x = reserve_x_token_account.amount;
         self.current_y = reserve_y_token_account.amount;
 
         if self.x_decimals == 0 && self.y_decimals == 0 {
-            let mint_x_data = &mut &accounts_map.get(&self.state.mint_x).unwrap().data[0..];
-            let min_x = &Mint::try_deserialize(mint_x_data).unwrap();
+            let mint_x_data = &mut &accounts_map.get(&self.state.mint_x).ok_or(AmmError::AccountNotFound)?.data[..];
+            let min_x = &Mint::try_deserialize(mint_x_data)?;
 
-            let mint_y_data = &mut &accounts_map.get(&self.state.mint_y).unwrap().data[0..];
-            let min_y = &Mint::try_deserialize(mint_y_data).unwrap();
+            let mint_y_data = &mut &accounts_map.get(&self.state.mint_y).ok_or(AmmError::AccountNotFound)?.data[..];
+            let min_y = &Mint::try_deserialize(mint_y_data)?;
 
             self.x_decimals = min_x.decimals;
             self.y_decimals = min_y.decimals;
         }
 
-        let price_x_data = &mut &accounts_map.get(&self.state.x_price_feed_id).unwrap().data[0..];
-        let price_y_data = &mut &accounts_map.get(&self.state.y_price_feed_id).unwrap().data[0..];
-        let price_x_fee = &PriceFeed::try_deserialize(price_x_data).unwrap();
-        let price_y_fee = &PriceFeed::try_deserialize(price_y_data).unwrap();
+        let price_x_data = &mut &accounts_map.get(&self.state.x_price_feed_id).ok_or(AmmError::AccountNotFound)?.data[..];
+        let price_y_data = &mut &accounts_map.get(&self.state.y_price_feed_id).ok_or(AmmError::AccountNotFound)?.data[..];
+        let price_x_fee = &PriceFeed::try_deserialize(price_x_data)?;
+        let price_y_fee = &PriceFeed::try_deserialize(price_y_data)?;
         let price_x = price_x_fee.price_normalized()?.price as u64;
         let price_y = price_y_fee.price_normalized()?.price as u64;
         self.state
@@ -94,20 +96,10 @@ impl Amm for ObricV2Amm {
         let (output_after_fee, protocol_fee, lp_fee) =
             if quote_params.input_mint.eq(&self.state.mint_x) {
                 self.state
-                    .quote_x_to_y(
-                        quote_params.in_amount.clone(),
-                        self.current_x,
-                        self.current_y,
-                    )
-                    .unwrap()
+                    .quote_x_to_y(quote_params.in_amount, self.current_x, self.current_y)?
             } else if quote_params.input_mint.eq(&self.state.mint_y) {
                 self.state
-                    .quote_y_to_x(
-                        quote_params.in_amount.clone(),
-                        self.current_x,
-                        self.current_y,
-                    )
-                    .unwrap()
+                    .quote_y_to_x(quote_params.in_amount, self.current_x, self.current_y)?
             } else {
                 (0u64, 0u64, 0u64)
             };
@@ -151,6 +143,7 @@ impl Amm for ObricV2Amm {
                 rebate_percentage: state.rebate_percentage,
                 protocol_fee_share_thousandth: state.protocol_fee_share_thousandth,
                 volume_record: state.volume_record,
+                volume_time_record: state.volume_time_record,
                 padding: state.padding,
             },
             current_x: self.current_x,
@@ -165,7 +158,7 @@ impl Amm for ObricV2Amm {
         Self: Sized,
     {
         let data = &mut &keyed_account.account.data.clone()[0..];
-        let ss_trading_pair = SSTradingPair::try_deserialize(data).unwrap();
+        let ss_trading_pair = SSTradingPair::try_deserialize(data)?;
         Ok(Self {
             key: keyed_account.key,
             state: ss_trading_pair,

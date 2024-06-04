@@ -1,6 +1,6 @@
-use anchor_lang::prelude::*;
-use num::{pow, integer::Roots};
 use crate::consts::MILLION;
+use anchor_lang::prelude::*;
+use num::{integer::Roots, pow};
 
 #[account]
 #[derive(Default, Debug)]
@@ -39,8 +39,7 @@ pub struct SSTradingPair {
     pub padding: [u64; 24],
 }
 
-impl SSTradingPair{
-
+impl SSTradingPair {
     #[inline(never)]
     pub fn update_price(
         &mut self,
@@ -62,11 +61,7 @@ impl SSTradingPair{
 
         Ok(())
     }
-    pub fn get_target_xy(
-        &self,
-        current_x: u64,
-        current_y: u64,
-    ) -> Result<(u64, u64)> {
+    pub fn get_target_xy(&self, current_x: u64, current_y: u64) -> Result<(u64, u64)> {
         let value_x = (current_x as u128) * (self.mult_x as u128);
         let value_y = (current_y as u128) * (self.mult_y as u128);
         let value_total = value_x + value_y;
@@ -91,8 +86,7 @@ impl SSTradingPair{
             return Ok((0u64, 0u64, 0u64));
         }
 
-        let (target_x, _target_y) =
-            self.get_target_xy(current_x, current_y)?;
+        let (target_x, _target_y) = self.get_target_xy(current_x, current_y)?;
 
         // 0. get target_x on curve-K
         let big_k = self.big_k;
@@ -108,14 +102,12 @@ impl SSTradingPair{
         let new_y_k = big_k / new_x_k;
 
         let output_before_fee_y: u64 = (current_y_k - new_y_k) as u64;
-        if output_before_fee_y >= current_y{
+        if output_before_fee_y >= current_y {
             return Ok((0u64, 0u64, 0u64));
         }
         let fee_before_rebate_y = output_before_fee_y * self.fee_millionth / MILLION;
         let rebate_ratio =
-            std::cmp::min(input_x,
-                          target_x - std::cmp::min(target_x, current_x)
-            ) * 100 / input_x;
+            std::cmp::min(input_x, target_x - std::cmp::min(target_x, current_x)) * 100 / input_x;
         let rebate_y = fee_before_rebate_y * rebate_ratio / 100 * self.rebate_percentage / 100;
         let fee_y = fee_before_rebate_y - rebate_y;
         let output_after_fee_y = output_before_fee_y - fee_y;
@@ -140,8 +132,7 @@ impl SSTradingPair{
             return Ok((0u64, 0u64, 0u64));
         }
 
-        let (target_x, target_y) =
-            self.get_target_xy(current_x, current_y)?;
+        let (target_x, target_y) = self.get_target_xy(current_x, current_y)?;
 
         // 0. get target_x on curve-K
         let big_k = self.big_k;
@@ -163,9 +154,7 @@ impl SSTradingPair{
 
         let fee_before_rebate_x = output_before_fee_x * (self.fee_millionth) / MILLION;
         let rebate_ratio =
-            std::cmp::min(input_y,
-                          target_y - std::cmp::min(target_y, current_y)
-                ) * 100  / input_y;
+            std::cmp::min(input_y, target_y - std::cmp::min(target_y, current_y)) * 100 / input_y;
         let rebate_x = fee_before_rebate_x * rebate_ratio / 100 * self.rebate_percentage / 100;
         let fee_x = fee_before_rebate_x - rebate_x;
         let output_after_fee_x = output_before_fee_x - fee_x;

@@ -59,11 +59,7 @@ impl SSTradingPair {
     pub const LEN: usize = 8 + 1 + 32 * 8 + 1 + 32 * 2 + 8 * 6 + 16 + 8 * 6 + 2 + 254; // 8 for internal anchor
 
     #[inline(never)]
-    pub fn update_price(
-        &mut self,
-        price_x: u64,
-        price_y: u64,
-    ) -> Result<()> {
+    pub fn update_price(&mut self, price_x: u64, price_y: u64) -> Result<()> {
         let x_decimals = self.decimals_x;
         let y_decimals = self.decimals_y;
         let (x_deci_mult, y_deci_mult) = if x_decimals > y_decimals {
@@ -94,7 +90,6 @@ impl SSTradingPair {
 
         Ok(())
     }
-
 
     pub fn compute_target_y(&self) -> u64 {
         let deposit_x_value = self.deposit_x.checked_mul(self.mult_x).unwrap();
@@ -132,9 +127,15 @@ impl SSTradingPair {
             .checked_div(self.mult_x)
             .unwrap();
         let current_y_k = target_y_k
-            .checked_add(self.deposit_y).unwrap().checked_sub(self.target_y).unwrap();
+            .checked_add(self.deposit_y)
+            .unwrap()
+            .checked_sub(self.target_y)
+            .unwrap();
         let current_x_k = target_x_k
-            .checked_add(self.deposit_x).unwrap().checked_sub(self.borrow_x).unwrap();
+            .checked_add(self.deposit_x)
+            .unwrap()
+            .checked_sub(self.borrow_x)
+            .unwrap();
         let big_k = (current_x_k as u128)
             .checked_mul(current_y_k as u128)
             .unwrap();

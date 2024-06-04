@@ -15,6 +15,7 @@ solana-sdk = "1.14.11"
 solana-client = "1.14.11"
 getrandom = "0.2.10"
 rust_decimal = "1.26.1"
+thiserror = "1.0.32"
 
 [dev-dependencies]
 num = "0.4.0"

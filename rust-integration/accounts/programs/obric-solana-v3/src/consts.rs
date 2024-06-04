@@ -157,7 +157,7 @@ pub mod larix {
     }
 }
 
-pub fn mint_to_larix_reserve (mint_ref: &Pubkey) -> Result<Pubkey>{
+pub fn mint_to_larix_reserve(mint_ref: &Pubkey) -> Result<Pubkey> {
     let mint = *mint_ref;
     if mint == mints::sol::ID {
         Ok(larix::reserves::main_pool::sol::ID)

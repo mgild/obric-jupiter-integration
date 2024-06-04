@@ -1,17 +1,16 @@
-pub mod state;
 pub mod consts;
 pub mod errors;
-
+pub mod state;
 
 use anchor_lang::prelude::*;
 use anchor_spl::token::{Mint, Token, TokenAccount};
 
 use crate::{
+    errors::ObricError,
     state::{
         larix::{Obligation, Reserve},
         PriceFeed, SSTradingPair,
     },
-    errors::ObricError,
 };
 declare_id!("4DDLcmzLRosAUgTNSHXDuAHmuE1CACA193L3QTPYyz9j");
 
@@ -26,8 +25,6 @@ pub mod obric_solana_v3 {
     pub fn swap_y_to_x(_ctx: Context<SwapYToX>, _input_y: u64, _min_output_amt: u64) -> Result<()> {
         Ok(())
     }
-
-  
 }
 
 #[derive(Accounts)]
@@ -165,7 +162,6 @@ pub struct SwapXToY<'info> {
     /// CHECK: larix program
     pub larix_program: UncheckedAccount<'info>,
 }
-
 
 #[derive(Accounts)]
 pub struct SwapYToX<'info> {

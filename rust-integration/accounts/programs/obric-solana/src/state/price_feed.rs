@@ -1,45 +1,41 @@
 use anchor_lang::prelude::*;
-use pyth_sdk::Price;
-use core::str::FromStr;
-use pyth_sdk_solana::{state::load_price_account};
 use core::ops::Deref;
+use pyth_sdk::Price;
+use pyth_sdk_solana::state::load_price_account;
 
 use crate::errors::ObricError;
 
 #[derive(Clone, Debug)]
-pub struct PriceFeed (pyth_sdk::PriceFeed);
+pub struct PriceFeed(pyth_sdk::PriceFeed);
+
+declare_id!("FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH");
 
 impl PriceFeed {
     pub fn price_normalized(&self) -> Result<Price> {
         let p = self.0.get_price_unchecked();
-        let price = p.scale_to_exponent(-3).unwrap();
+        let price = p.scale_to_exponent(-3).ok_or(ObricError::PythError)?;
         Ok(price)
     }
 }
 
 impl Owner for PriceFeed {
     fn owner() -> Pubkey {
-        // Make sure the owner is the pyth oracle account on solana mainnet-beta
-        let oracle_addr = "FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH";
-        return  Pubkey::from_str(&oracle_addr).unwrap();
+        return id();
     }
 }
 
 impl AccountDeserialize for PriceFeed {
-    fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self>{
-        let account = load_price_account(data)
-            .map_err(|_x| error!(ObricError::PythError))?;
+    fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
+        let account = load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
 
         // Use a dummy key since the key field will be removed from the SDK
-        let zeros: [u8; 32] = [0; 32];
-        let dummy_key = Pubkey::try_from(zeros).unwrap();
-        let feed = account.to_price_feed(&dummy_key);
+        let feed = account.to_price_feed(&ID);
         return Ok(PriceFeed(feed));
     }
 }
 
 impl AccountSerialize for PriceFeed {
-    fn try_serialize<W: std::io::Write>(&self, _writer: &mut W,) -> std::result::Result<(), Error> {
+    fn try_serialize<W: std::io::Write>(&self, _writer: &mut W) -> std::result::Result<(), Error> {
         Err(error!(ObricError::TryToSerializePriceAccount))
     }
 }
