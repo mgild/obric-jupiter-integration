@@ -17,7 +17,7 @@ impl PriceFeed {
     }
 }
 
-impl anchor_lang::Owner for PriceFeed {
+impl Owner for PriceFeed {
     fn owner() -> Pubkey {
         // Make sure the owner is the pyth oracle account on solana mainnet-beta
         let oracle_addr = "FsJ3A3u2vn5cTVofAjvy6y5kwABJAqYWpe4975bi2epH";
@@ -25,7 +25,7 @@ impl anchor_lang::Owner for PriceFeed {
     }
 }
 
-impl anchor_lang::AccountDeserialize for PriceFeed {
+impl AccountDeserialize for PriceFeed {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self>{
         let account = load_price_account(data)
             .map_err(|_x| error!(ObricError::PythError))?;
@@ -38,7 +38,7 @@ impl anchor_lang::AccountDeserialize for PriceFeed {
     }
 }
 
-impl anchor_lang::AccountSerialize for PriceFeed {
+impl AccountSerialize for PriceFeed {
     fn try_serialize<W: std::io::Write>(&self, _writer: &mut W,) -> std::result::Result<(), Error> {
         Err(error!(ObricError::TryToSerializePriceAccount))
     }

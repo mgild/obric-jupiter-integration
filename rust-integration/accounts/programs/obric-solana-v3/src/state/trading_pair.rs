@@ -51,8 +51,8 @@ pub struct SSTradingPair {
     pub volume_records: [u64; 8],
 
     pub padding: [u8; 6],
-    pub padding1: [u64; 15],
-    pub padding2: [u64; 16],
+    pub volume_time_records: [i64; 8],
+    pub padding2: [u64; 23],
 }
 
 impl SSTradingPair {

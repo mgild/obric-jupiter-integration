@@ -34,8 +34,9 @@ pub struct SSTradingPair {
     pub protocol_fee_share_thousandth: u64,
 
     pub volume_record: [u64; 8],
+    pub volume_time_record: [i64; 8],
 
-    pub padding: [u64; 32],
+    pub padding: [u64; 24],
 }
 
 impl SSTradingPair{
@@ -56,8 +57,8 @@ impl SSTradingPair{
             (1 as u64, 1 as u64)
         };
 
-        self.mult_x = price_x.checked_mul(x_deci_mult).unwrap();
-        self.mult_y = price_y.checked_mul(y_deci_mult).unwrap();
+        self.mult_x = price_x * x_deci_mult;
+        self.mult_y = price_y * y_deci_mult;
 
         Ok(())
     }
@@ -66,14 +67,14 @@ impl SSTradingPair{
         current_x: u64,
         current_y: u64,
     ) -> Result<(u64, u64)> {
-        let value_x = (current_x as u128).checked_mul(self.mult_x as u128).unwrap();
-        let value_y = (current_y as u128).checked_mul(self.mult_y as u128).unwrap();
-        let value_total = value_x.checked_add(value_y).unwrap();
+        let value_x = (current_x as u128) * (self.mult_x as u128);
+        let value_y = (current_y as u128) * (self.mult_y as u128);
+        let value_total = value_x + value_y;
 
         let target_x = self.target_x;
-        let target_x_value = (target_x as u128).checked_mul(self.mult_x as u128).unwrap();
-        let target_y_value = value_total.checked_sub(target_x_value).unwrap();
-        let target_y = target_y_value.checked_div(self.mult_y as u128).unwrap() as u64;
+        let target_x_value = (target_x as u128) * (self.mult_x as u128);
+        let target_y_value = value_total - target_x_value;
+        let target_y = (target_y_value / (self.mult_y as u128)) as u64;
         Ok((target_x, target_y))
     }
     /**
@@ -96,29 +97,31 @@ impl SSTradingPair{
         // 0. get target_x on curve-K
         let big_k = self.big_k;
         //target_x_K = sqrt(big_k / p), where p = mult_x / mult_y
-        let target_x_k = big_k.checked_mul(self.mult_y as u128).unwrap().checked_div(self.mult_x as u128).unwrap().sqrt();
+        let target_x_k = (big_k * (self.mult_y as u128) / (self.mult_x as u128)).sqrt();
 
         // 1. find current (x,y) on curve-K
-        let current_x_k = target_x_k.checked_sub(target_x as u128).unwrap().checked_add(current_x as u128).unwrap();
-        let current_y_k = big_k.checked_div(current_x_k).unwrap();
+        let current_x_k = target_x_k - (target_x as u128) + (current_x as u128);
+        let current_y_k = big_k / current_x_k;
 
         // 2. find new (x, y) on curve-K
-        let new_x_k = current_x_k.checked_add(input_x as u128).unwrap();
-        let new_y_k = big_k.checked_div(new_x_k).unwrap();
+        let new_x_k = current_x_k + (input_x as u128);
+        let new_y_k = big_k / new_x_k;
 
-        let output_before_fee_y: u64 = current_y_k.checked_sub(new_y_k).unwrap().try_into().unwrap();
+        let output_before_fee_y: u64 = (current_y_k - new_y_k) as u64;
         if output_before_fee_y >= current_y{
             return Ok((0u64, 0u64, 0u64));
         }
-        let fee_before_rebate_y = output_before_fee_y.checked_mul(self.fee_millionth).unwrap() / MILLION;
+        let fee_before_rebate_y = output_before_fee_y * self.fee_millionth / MILLION;
         let rebate_ratio =
-            std::cmp::min(input_x, target_x.checked_sub(std::cmp::min(target_x, current_x)).unwrap()).checked_mul(100).unwrap() / input_x;
-        let rebate_y = (fee_before_rebate_y.checked_mul(rebate_ratio).unwrap() / 100).checked_mul(self.rebate_percentage).unwrap() / 100;
-        let fee_y = fee_before_rebate_y.checked_sub(rebate_y).unwrap();
-        let output_after_fee_y = output_before_fee_y.checked_sub(fee_y).unwrap();
+            std::cmp::min(input_x,
+                          target_x - std::cmp::min(target_x, current_x)
+            ) * 100 / input_x;
+        let rebate_y = fee_before_rebate_y * rebate_ratio / 100 * self.rebate_percentage / 100;
+        let fee_y = fee_before_rebate_y - rebate_y;
+        let output_after_fee_y = output_before_fee_y - fee_y;
 
-        let protocol_fee_y = fee_y.checked_mul(self.protocol_fee_share_thousandth).unwrap() / 1000;
-        let lp_fee_y = fee_y.checked_sub(protocol_fee_y).unwrap();
+        let protocol_fee_y = fee_y * self.protocol_fee_share_thousandth / 1000;
+        let lp_fee_y = fee_y - protocol_fee_y;
 
         Ok((output_after_fee_y, protocol_fee_y, lp_fee_y))
     }
@@ -143,30 +146,32 @@ impl SSTradingPair{
         // 0. get target_x on curve-K
         let big_k = self.big_k;
         //target_x_K = sqrt(big_k / p), where p = mult_x / mult_y
-        let target_x_k = big_k.checked_mul(self.mult_y as u128).unwrap().checked_div(self.mult_x as u128).unwrap().sqrt();
+        let target_x_k = (big_k * (self.mult_y as u128) / (self.mult_x as u128)).sqrt();
 
         // 1. find current (x, y) on curve-K
-        let current_x_k = target_x_k.checked_sub(target_x as u128).unwrap().checked_add(current_x as u128).unwrap();
-        let current_y_k = big_k.checked_div(current_x_k).unwrap();
+        let current_x_k = target_x_k - (target_x as u128) + (current_x as u128);
+        let current_y_k = big_k / current_x_k;
 
         // 2. find new (x, y) on curve-K
-        let new_y_k = current_y_k.checked_add(input_y as u128).unwrap();
-        let new_x_k = big_k.checked_div(new_y_k).unwrap();
+        let new_y_k = current_y_k + (input_y as u128);
+        let new_x_k = big_k / new_y_k;
 
-        let output_before_fee_x: u64 = current_x_k.checked_sub(new_x_k).unwrap().try_into().unwrap();
+        let output_before_fee_x: u64 = (current_x_k - new_x_k) as u64;
         if output_before_fee_x >= current_x {
             return Ok((0u64, 0u64, 0u64));
         }
 
-        let fee_before_rebate_x = output_before_fee_x.checked_mul(self.fee_millionth).unwrap() / MILLION;
+        let fee_before_rebate_x = output_before_fee_x * (self.fee_millionth) / MILLION;
         let rebate_ratio =
-            std::cmp::min(input_y, target_y.checked_sub(std::cmp::min(target_y, current_y)).unwrap()).checked_mul(100).unwrap()  / input_y;
-        let rebate_x = (fee_before_rebate_x.checked_mul(rebate_ratio).unwrap() / 100).checked_mul(self.rebate_percentage).unwrap() / 100;
-        let fee_x = fee_before_rebate_x.checked_sub(rebate_x).unwrap();
-        let output_after_fee_x = output_before_fee_x.checked_sub(fee_x).unwrap();
+            std::cmp::min(input_y,
+                          target_y - std::cmp::min(target_y, current_y)
+                ) * 100  / input_y;
+        let rebate_x = fee_before_rebate_x * rebate_ratio / 100 * self.rebate_percentage / 100;
+        let fee_x = fee_before_rebate_x - rebate_x;
+        let output_after_fee_x = output_before_fee_x - fee_x;
 
-        let protocol_fee_x = fee_x.checked_mul(self.protocol_fee_share_thousandth).unwrap() / 1000;
-        let lp_fee_x = fee_x.checked_sub(protocol_fee_x).unwrap();
+        let protocol_fee_x = fee_x * self.protocol_fee_share_thousandth / 1000;
+        let lp_fee_x = fee_x - protocol_fee_x;
 
         Ok((output_after_fee_x, protocol_fee_x, lp_fee_x))
     }
