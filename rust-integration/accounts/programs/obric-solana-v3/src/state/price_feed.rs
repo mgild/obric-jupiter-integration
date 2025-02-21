@@ -28,12 +28,12 @@ impl anchor_lang::Owner for PriceFeed {
 
 impl anchor_lang::AccountDeserialize for PriceFeed {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
-        let account = load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
+        let account: &pyth_sdk_solana::state::SolanaPriceAccount = load_price_account(data).map_err(|_x| error!(ObricError::PythError))?;
 
         // Use a dummy key since the key field will be removed from the SDK
         let zeros: [u8; 32] = [0; 32];
         let dummy_key = Pubkey::try_from(zeros).unwrap();
-        let feed = account.to_price_feed(&dummy_key);
+        let feed = account.to_price_feed(&dummy_key.to_string().parse().unwrap());
         return Ok(PriceFeed(feed));
     }
 }

@@ -28,4 +28,8 @@ pub enum ObricError {
     InvalidPriceOwner,
 
     InvalidRoutesForSwap,
+    AccountNotFound,
 }
+pub type AmmError = ObricError;
+
+impl std::error::Error for ObricError {}

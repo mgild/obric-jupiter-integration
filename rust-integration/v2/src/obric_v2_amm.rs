@@ -11,7 +11,7 @@ use obric_solana::state::PriceFeed;
 use obric_solana::state::SSTradingPair;
 use solana_sdk::account::Account;
 use std::collections::HashMap;
-use crate::errors::AmmError;
+use obric_solana::errors::AmmError;
 
 
 pub struct ObricV2Amm {
