@@ -18,6 +18,8 @@ impl PriceFeed {
     }
 }
 
+impl anchor_lang::IdlBuild for PriceFeed {}
+
 impl anchor_lang::Owner for PriceFeed {
     fn owner() -> Pubkey {
         // Make sure the owner is the pyth oracle account on solana mainnet-beta
