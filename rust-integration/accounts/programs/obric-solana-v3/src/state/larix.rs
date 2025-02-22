@@ -9,6 +9,8 @@ use larix_lending::state::reserve::Reserve as LarixReserve;
 #[derive(Clone)]
 pub struct Reserve(LarixReserve);
 
+impl anchor_lang::IdlBuild for Reserve {}
+
 impl anchor_lang::AccountDeserialize for Reserve {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
         let reserve = LarixReserve::unpack(data)
@@ -69,6 +71,8 @@ pub struct CtokenInfo {
 
 #[derive(Clone)]
 pub struct Obligation(LarixObligation);
+
+impl anchor_lang::IdlBuild for Obligation {}
 
 impl anchor_lang::AccountDeserialize for Obligation {
     fn try_deserialize_unchecked(data: &mut &[u8]) -> Result<Self> {
