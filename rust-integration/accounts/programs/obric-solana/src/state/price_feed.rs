@@ -4,6 +4,7 @@ use pyth_sdk::Price;
 use pyth_sdk_solana::state::load_price_account;
 
 use crate::errors::ObricError;
+use anchor_lang::IdlBuild;
 
 #[derive(Clone, Debug)]
 pub struct PriceFeed(pyth_sdk::PriceFeed);
@@ -16,6 +17,9 @@ impl PriceFeed {
         let price = p.scale_to_exponent(-3).ok_or(ObricError::PythError)?;
         Ok(price)
     }
+}
+
+impl IdlBuild for PriceFeed {
 }
 
 impl Owner for PriceFeed {

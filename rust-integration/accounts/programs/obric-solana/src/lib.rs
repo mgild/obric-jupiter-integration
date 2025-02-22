@@ -75,3 +75,5 @@ pub struct Swap<'info> {
 
     pub token_program: Program<'info, Token>,
 }
+
+// impl anchor_syn::idl::build::IdlBuild for Swap<'_> {}
